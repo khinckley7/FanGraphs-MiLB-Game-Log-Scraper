@@ -25,33 +25,22 @@ def strip_tags(html):
     s.feed(html)
     return s.get_data()
 
-# Open THE BOARD (2019) 
-file =  open('theboard2019.csv', 'r')
+# Open THE BOARD 
+THEBOARD = pd.read_csv('theboard2020.csv') 
 
-# Read csv file
-reader = csv.reader(file)
-next(reader) # Skips headers
+THEBOARD = THEBOARD.replace({'Pos': {'RHP': 'P', 'LHP': 'P', 'LF': 'OF', 'CF': 'OF', 'RF': 'OF'}}) # Re-code position labels
 
-players = {} # Create dictionary of players to store id, position, and FV
+THEBOARD['Name'] = THEBOARD['Name'].str.lower() # Change names to lowercase
+THEBOARD['Name'] = THEBOARD['Name'].str.replace('.','') # Erase periods from names
+THEBOARD['Name'] = THEBOARD['Name'].str.replace(' ','-') # Repalce spaces with hypens
 
-# Iterate through csv file
-for row in reader:
+THEBOARD = THEBOARD[['Name', 'Org', 'Pos', 'Current Level', 'FV', 'ETA', 'Age', 'playerId']] # Keep only relevant columns
 
-	# Standardize position markers
-	if row[4] == 'RHP' or row[4] == 'LHP':
-		pos = 'P'
-	elif row[4] =='RF' or row[4] =='CF' or row[4] =='LF':
-		pos = 'OF'
-	else:
-		pos = row[4]
+player_dict = THEBOARD.set_index('Name').T.to_dict('list') # Convert THEBOARD dataframe into dictionary
 
-	# Add entry to dictionary
-	players[row[2].lower()] = {'id': row[20], 'position':pos, 'FV':row[9]}
-
-today = datetime.now() 
-start_date = (today - timedelta(days=365)).date() # 365 days prior
-today = today.strftime('%Y-%m-%d') # Today's date
-
+today = datetime.now() # Get today's date
+start_date = (today - timedelta(days=218)).date() # 365 days prior
+today = today.strftime('%Y-%m-%d') # Today's date (formatted) 
 
 
 def milb_game_logs(player_name, player_id, position, start_date, end_date=today):
@@ -82,19 +71,29 @@ def milb_game_logs(player_name, player_id, position, start_date, end_date=today)
 
 		game_log = pd.DataFrame(list(zip(col_names, stats)), columns=[player_name,str(start_date)+'-'+str(end_date)])
 		print(game_log)
+		return game_log
 
 	except:
 		pass
 
+game_logs = pd.DataFrame()
 
-for key, value in players.items():
+for key, value in player_dict.items():
 	
 	player_name = key
-	player_id = value['id']
-	position = value['position']
-	FV = value['FV']
-
-
-	milb_game_logs(player_name, player_id, position, start_date, today)
+	organization = value[0]
+	position = value[1]
+	level = value[2]
+	FV = value[3]
+	ETA = value[4]
+	age = value[5]
+	player_id = value[6]
+	
+	if position != 'P' and level == 'AA':
+		milb_game_logs(player_name, player_id, position, start_date, today)
+		# game_logs = game_logs.append(milb_game_logs(player_name, player_id, position, start_date, today), sort=True)
 
 # milb_game_logs("aj-puk", "19343", "P", start_date, today)
+
+
+
