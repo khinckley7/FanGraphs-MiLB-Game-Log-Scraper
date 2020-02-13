@@ -4,7 +4,6 @@ import urllib
 from datetime import datetime, timedelta
 import urllib.request
 import csv
-# import webbrowser
 from html.parser import HTMLParser
 
 # Create HTML stripper
@@ -61,23 +60,24 @@ def milb_game_logs(player_name, player_id, position, start_date, end_date=today)
 		for col in table.select('th'):
 			col = str(col)
 			col_name = strip_tags(col)
-			col_names.append(col_name)
+			col_names.append(col_name) # Add column name
 
 		for col in table.select('td'):
 			col = str(col)
 			stat = strip_tags(col)
-			stats.append(stat)
+			stats.append(stat) # Add stat value
 
 
 		game_log = pd.DataFrame(list(zip(col_names, stats)), columns=[player_name,str(start_date)+'-'+str(end_date)])
-		print(game_log)
+		# print(game_log)
 		return game_log
 
 	except:
 		pass
 
-game_logs = pd.DataFrame()
+game_logs = pd.DataFrame() # Create empty dataframe to store game logs
 
+# Loop through THEBOARD
 for key, value in player_dict.items():
 	
 	player_name = key
@@ -93,6 +93,7 @@ for key, value in player_dict.items():
 		milb_game_logs(player_name, player_id, position, start_date, today)
 		# game_logs = game_logs.append(milb_game_logs(player_name, player_id, position, start_date, today), sort=True)
 
+# Test
 # milb_game_logs("aj-puk", "19343", "P", start_date, today)
 
 
